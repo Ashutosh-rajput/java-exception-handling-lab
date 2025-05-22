@@ -1,6 +1,5 @@
 package com.trainingmug.employee.service;
 
-import com.trainingmug.employee.domain.Employee;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
