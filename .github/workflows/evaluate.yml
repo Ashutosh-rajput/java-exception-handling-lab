@@ -15,7 +15,7 @@ on:
         required: false
       total_tests:
         description: 'Total number of tests'
-        required: false
+        required: true
 
 jobs:
   evaluate:
@@ -48,7 +48,9 @@ jobs:
           WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
           CALLBACK_URL: ${{ inputs.callback_url }}
           TOTAL_TESTS: ${{ inputs.total_tests}}
+
         run: |
+          echo "Total Tests Received: $TOTAL_TESTS"
           error_output=$(head -c 200 compile.log | jq -Rs .)
           payload=$(jq -n \
             --argjson passed 0 \
