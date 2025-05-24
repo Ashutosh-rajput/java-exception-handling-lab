@@ -7,11 +7,11 @@ on:
       callback_url:
         description: 'URL to send the results to'
         required: true
-      testFiles:
-        description: 'Test files'
+      test_files:
+        description: 'Comma separated list of test files to download'
         required: false
-      testStorageLocation:
-        description: 'Storage location'
+      test_files_storage_location:
+        description: 'Location to store the test files'
         required: false
       total_tests:
         description: 'Total number of tests'
