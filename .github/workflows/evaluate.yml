@@ -48,13 +48,21 @@ jobs:
           WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
           CALLBACK_URL: ${{ inputs.callback_url }}
         run: |
-          error_output=$(cat compile.log | jq -Rs .)
+          error_output=$(jq -Rs . < compile.log)
+          
           curl \
             -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: $WEBHOOK_TOKEN" \
-            -d "{\"passedTests\": 0, \"failedTests\": 0, \"totalTests\": ${{ inputs.total_tests }}, \"compileError\": $error_output, \"commitSHA\": \"$GITHUB_SHA\"}" \
-            "$CALLBACK_URL"
+            -d @- "$CALLBACK_URL" <<EOF
+            {
+            "passedTests": 0,
+            "failedTests": 0,
+            "totalTests": ${ { inputs.total_tests } },
+            "compileError": $error_output,
+            "commitSHA": "$GITHUB_SHA"
+            }
+            EOF
           exit 1
 
       - name: Run the tests
