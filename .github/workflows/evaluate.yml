@@ -47,7 +47,7 @@ jobs:
         env:
           WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
           CALLBACK_URL: ${{ inputs.callback_url }}
-          TOTAL_TESTS: ${{ inputs.total_tests || 0 }}
+          TOTAL_TESTS: ${{ inputs.total_tests}}
         run: |
           error_output=$(head -c 200 compile.log | jq -Rs .)
           payload=$(jq -n \
