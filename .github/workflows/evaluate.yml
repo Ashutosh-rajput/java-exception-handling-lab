@@ -28,6 +28,9 @@ jobs:
 
       - name: Compiling Project
         id: compile
+        env:
+          WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
+          CALLBACK_URL: ${{ inputs.callback_url }}
         run: |
           set -o pipefail
           mvn compile 2>&1 | tee compile.log || echo "Compilation failed" >> compile_error.log
