@@ -40,7 +40,7 @@ jobs:
         run: |
           set -o pipefail
           mvn compile 2>&1 | tee compile.log
-          continue-on-error: true
+        continue-on-error: true
 
       - name: Handle Compilation Error and Exit Early if Needed
         if: steps.compile.outcome == 'failure'
