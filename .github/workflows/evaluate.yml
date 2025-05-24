@@ -54,7 +54,7 @@ jobs:
             --argjson passed 0 \
             --argjson failed 0 \
             --argjson total "$TOTAL_TESTS" \
-            --argjson error "$error_output" \
+            --arg error "$error_output" \
             --arg sha "$GITHUB_SHA" \
             '{passedTests: $passed, failedTests: $failed, totalTests: $total, compileError: $error, commitSHA: $sha}')
           
