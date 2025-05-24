@@ -35,26 +35,27 @@ jobs:
       - name: Install yq
         run: sudo snap install yq
 
-      - name: Compiling Project
+      - name: Compile Project
         id: compile
         run: |
           set -o pipefail
-          mvn compile 2>&1 | tee compile.log || echo "Compilation failed" >> compile_error.log
-          
-          - name: Handle Compilation Error and Exit Early if Needed
-            if: failure()
-            env:
-              WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
-              CALLBACK_URL: ${{ inputs.callback_url }}
-            run: |
-              error_output=$(cat compile.log | jq -Rs .) # JSON escape
-              curl \
+          mvn compile 2>&1 | tee compile.log
+          continue-on-error: true
+
+      - name: Handle Compilation Error and Exit Early if Needed
+        if: steps.compile.outcome == 'failure'
+        env:
+          WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
+          CALLBACK_URL: ${{ inputs.callback_url }}
+        run: |
+          error_output=$(cat compile.log | jq -Rs .)
+          curl \
             -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: $WEBHOOK_TOKEN" \
-            -d "{\"passedTests\": 0, \"failedTests\": 0, \"totalTests\": ${{ inputs.total_tests }} , \"compileError\": $error_output, \"commitSHA\": \"$GITHUB_SHA\"}" \
-            $CALLBACK_URL
-              exit 1
+            -d "{\"passedTests\": 0, \"failedTests\": 0, \"totalTests\": ${{ inputs.total_tests }}, \"compileError\": $error_output, \"commitSHA\": \"$GITHUB_SHA\"}" \
+            "$CALLBACK_URL"
+          exit 1
 
       - name: Run the tests
         run: mvn test
