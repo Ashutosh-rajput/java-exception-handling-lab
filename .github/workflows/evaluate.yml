@@ -7,15 +7,16 @@ on:
       callback_url:
         description: 'URL to send the results to'
         required: true
+      total_tests:
+        description: 'Total number of tests'
+        required: true
       test_files:
         description: 'Comma separated list of test files to download'
         required: false
       test_files_storage_location:
         description: 'Location to store the test files'
         required: false
-      total_tests:
-        description: 'Total number of tests'
-        required: true
+
 
 jobs:
   evaluate:
@@ -51,6 +52,7 @@ jobs:
 
         run: |
           echo "Total Tests Received: $TOTAL_TESTS"
+          
           error_output=$(head -c 200 compile.log | jq -Rs .)
           payload=$(jq -n \
             --argjson passed 0 \
