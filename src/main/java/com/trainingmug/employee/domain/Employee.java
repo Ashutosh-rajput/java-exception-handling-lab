@@ -4,7 +4,7 @@ public class Employee {
 
     // Instance Variables
 
-    private long empId;
+//    private long empId;
     private String name;
     private String designation;
     private float grossSalary;

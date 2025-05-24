@@ -1,12 +1,6 @@
 on:
   workflow_dispatch:
     inputs:
-      test_files:
-        description: 'Comma separated list of test files to download'
-        required: false
-      test_files_storage_location:
-        description: 'Location to store the test files'
-        required: false
       webhook_token:
         description: 'Token to authenticate the webhook'
         required: true
@@ -22,66 +16,71 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+
       - name: Set up JDK 18
         uses: actions/setup-java@v4
         with:
           distribution: 'adopt'
           java-version: '18'
+
       - name: Install yq
         run: sudo snap install yq
-      - name: Download the additional test files
-        env:
-          TEST_FILES: ${{ inputs.test_files }}
-          TEST_FILES_STORAGE_LOCATION: ${{ inputs.test_files_storage_location }}
-        run: |
-          if [ -n "$TEST_FILES" ]; then
-            # Split the files by comma
-            file_list=${TEST_FILES//,/ }
 
-            # Download the files
-            for file in $file_list; do
-              fn="${file##*/}"
-              file_name="${fn%\?*}" # Get the file name
-              echo "Downloading $file_name in $TEST_FILES_STORAGE_LOCATION"
-              curl --create-dirs --output-dir $TEST_FILES_STORAGE_LOCATION -o $file_name $file
-            done
-          else
-            echo "TEST_FILES is null or empty. No files to download."
-          fi
+      - name: Compiling Project
+        id: compile
+        run: |
+          set -o pipefail
+          mvn compile 2>&1 | tee compile.log || echo "Compilation failed" >> compile_error.log
+          
+          - name: Handle Compilation Error and Exit Early if Needed
+            if: failure()
+            env:
+              WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
+              CALLBACK_URL: ${{ inputs.callback_url }}
+            run: |
+              error_output=$(cat compile.log | jq -Rs .) # JSON escape
+              curl \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: $WEBHOOK_TOKEN" \
+            -d "{\"passedTests\": 0, \"failedTests\": 0, \"totalTests\": ${{ inputs.total_tests }} , \"compileError\": $error_output, \"commitSHA\": \"$GITHUB_SHA\"}" \
+            $CALLBACK_URL
+              exit 1
+
       - name: Run the tests
         run: mvn test
         continue-on-error: true
+
       - name: Parse and send the results to the API
         env:
           WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
           CALLBACK_URL: ${{ inputs.callback_url }}
         run: |
           # Initialize global counters
-          total_tests_count=0
+          total_tests_count=${{ inputs.total_tests }}
           passed_tests_count=0
           failed_tests_count=0
 
           failed_tests=()
           passed_tests=()
-
+          
           # Loop through all XML files in the directory
           for file in target/surefire-reports/*.xml; do
             if [ -f "$file" ]; then
-              # Extract the total number of tests, passed tests, and failed tests using yq
               tests=`yq '.testsuite.+@tests' $file`
               failed=$((`yq '.testsuite.+@failures' "$file"` + `yq '.testsuite.+@errors' "$file"`))
               passed=$((tests - failed))
-
+          
+          
               # Accumulate the results
-              total_tests_count=$((total_tests_count + tests))
               passed_tests_count=$((passed_tests_count + passed))
               failed_tests_count=$((failed_tests_count + failed))
-
+          
               # Iterate through testcases
-
+          
               # Extract each testcase that has a failure and output its failure message
-              readarray failed_testcases < <(yq e -o=j -I=0 '.testsuite.testcase[] | select(has("failure"))' "$file")
-
+          
+               readarray failed_testcases < <(yq e -o=j -I=0 '.testsuite.testcase[] | select(has("failure"))' "$file")
               for testcase in "${failed_testcases[@]}"; do
                 name=`echo $testcase | yq -r '.+@name'`
                 testcase_message=`echo $testcase | yq -r '.failure.+@message'`
@@ -91,9 +90,7 @@ jobs:
                 failed_tests+=("$json_test_result")
               done
 
-              # Extract each testcase that has been passed
               readarray passed_testcases < <(yq e -o=j -I=0 '.testsuite.testcase[] | select(has("failure") | not)' "$file")
-
               for testcase in "${passed_testcases[@]}"; do
                 name=`echo $testcase | yq -r '.+@name'`
                 passed_tests+=("\"$name\"")
@@ -107,18 +104,6 @@ jobs:
           formatted_passed_tests=$(printf '%s\n' "${passed_tests[@]}" | sed '$!s/$/,/')
           passed_tests="[$formatted_passed_tests]"
 
-          if [[ -z $failed_tests ]]; then
-            failed_tests="[]"
-          fi
-
-          if [[ -z $passed_tests ]]; then
-            passed_tests="[]"
-          fi
-
-          
-
-          # Print the results
-          echo "Total tests: $total_tests_count"
           echo "Total passed: $passed_tests_count"
           echo "Total failed: $failed_tests_count"
           echo "Failed Tests: $failed_tests"
