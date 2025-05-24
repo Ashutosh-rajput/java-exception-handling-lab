@@ -33,7 +33,7 @@ jobs:
           java-version: '18'
 
       - name: Install yq
-        uses: actions-hub/yq@v1.2.0
+        run: sudo snap install yq
 
       - name: Compile Project
         id: compile
