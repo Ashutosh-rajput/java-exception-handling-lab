@@ -10,7 +10,12 @@ on:
       total_tests:
         description: 'Total number of tests'
         required: false
-
+      test_files:
+        description: 'Comma separated list of test files to download'
+        required: false
+      test_files_storage_location:
+        description: 'Location to store the test files'
+        required: false
 
 
 jobs:
@@ -43,10 +48,8 @@ jobs:
         env:
           WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
           CALLBACK_URL: ${{ inputs.callback_url }}
-          TOTAL_TESTS: ${{ inputs.total_tests || 0}}
-
+          TOTAL_TESTS: ${{ inputs.total_tests || 0 }}
         run: |
-
           error_output=$(head -c 200 compile.log | jq -Rs .)
           payload=$(jq -n \
             --argjson passed 0 \
@@ -55,7 +58,7 @@ jobs:
             --argjson error "$error_output" \
             --arg sha "$GITHUB_SHA" \
             '{passedTests: $passed, failedTests: $failed, totalTests: $total, compileError: $error, commitSHA: $sha}')
-
+          
           curl -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: $WEBHOOK_TOKEN" \
