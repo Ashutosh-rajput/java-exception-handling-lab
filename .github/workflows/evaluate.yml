@@ -10,12 +10,7 @@ on:
       total_tests:
         description: 'Total number of tests'
         required: true
-      test_files:
-        description: 'Comma separated list of test files to download'
-        required: false
-      test_files_storage_location:
-        description: 'Location to store the test files'
-        required: false
+
 
 
 jobs:
