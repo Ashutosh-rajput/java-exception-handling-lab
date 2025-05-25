@@ -17,7 +17,6 @@ on:
         description: 'Location to store the test files'
         required: false
 
-
 jobs:
   evaluate:
     name: Evaluate
@@ -48,8 +47,18 @@ jobs:
         env:
           WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
           CALLBACK_URL: ${{ inputs.callback_url }}
-          TOTAL_TESTS: ${{ inputs.total_tests || 0 }}
+          TOTAL_TESTS_INPUT: ${{ inputs.total_tests }}
         run: |
+          echo "Raw input: $TOTAL_TESTS_INPUT"
+
+          # Strip non-digit chars and fallback
+          if [[ "$TOTAL_TESTS_INPUT" =~ ^[0-9]+$ ]]; then
+             TOTAL_TESTS=$TOTAL_TESTS_INPUT
+          else
+            echo "Invalid or empty TOTAL_TESTS_INPUT, defaulting to 0"
+            TOTAL_TESTS=0
+          fi
+          
           error_output=$(head -c 200 compile.log | jq -Rs .)
           payload=$(jq -n \
             --argjson passed 0 \
