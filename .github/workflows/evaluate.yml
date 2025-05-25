@@ -43,20 +43,9 @@ jobs:
         env:
           WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
           CALLBACK_URL: ${{ inputs.callback_url }}
-          TOTAL_TESTS_INPUT: ${{ inputs.total_tests || 0}}
+          TOTAL_TESTS: ${{ inputs.total_tests || 0}}
 
         run: |
-          echo "Raw input: $TOTAL_TESTS_INPUT"
-
-          # Strip non-digit chars and fallback
-          if [[ "$TOTAL_TESTS_INPUT" =~ ^[0-9]+$ ]]; then
-            TOTAL_TESTS=$TOTAL_TESTS_INPUT
-          else
-            echo "Invalid or empty TOTAL_TESTS_INPUT, defaulting to 0"
-            TOTAL_TESTS=0
-          fi
-          
-          echo "Total Tests Received: $TOTAL_TESTS"
 
           error_output=$(head -c 200 compile.log | jq -Rs .)
           payload=$(jq -n \
