@@ -9,7 +9,7 @@ on:
         required: true
       total_tests:
         description: 'Total number of tests'
-        required: true
+        required: false
 
 
 
