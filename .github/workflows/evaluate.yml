@@ -59,7 +59,7 @@ jobs:
             TOTAL_TESTS=0
           fi
           
-          error_output=$(head -c 9000 compile.log | jq -Rs .)
+          error_output=$(head -c 2000 compile.log | jq -Rs .)
           payload=$(jq -n \
             --argjson passed 0 \
             --argjson failed 0 \
