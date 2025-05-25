@@ -39,7 +39,7 @@ jobs:
         id: compile
         run: |
           set -o pipefail
-          mvn compile 2>&1 | tee compile.log
+          mvn -B -q compile 2>&1 | tee compile.log
         continue-on-error: true
 
       - name: Handle Compilation Error
