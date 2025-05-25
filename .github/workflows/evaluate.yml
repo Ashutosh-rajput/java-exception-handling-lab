@@ -43,7 +43,7 @@ jobs:
         env:
           WEBHOOK_TOKEN: ${{ inputs.webhook_token }}
           CALLBACK_URL: ${{ inputs.callback_url }}
-          TOTAL_TESTS_INPUT: ${{ inputs.total_tests}}
+          TOTAL_TESTS_INPUT: ${{ inputs.total_tests || 0}}
 
         run: |
           echo "Raw input: $TOTAL_TESTS_INPUT"
