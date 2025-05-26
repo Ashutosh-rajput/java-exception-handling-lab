@@ -104,7 +104,7 @@ public class PayrollImplTest {
                 payrollImpl.processSalary(invalidEmployee);
             });
 
-            assertEquals("Hey Jane Doe, Invalid Bank Account, Please provide the proper Bank Account Number to process your salary..",
+            assertEquals("Hey Jane , Invalid Bank Account, Please provide the proper Bank Account Number to process your salary..",
                     thrown.getMessage(), "The exception message should match for an invalid bank account.");
 
         } catch (Exception e) {

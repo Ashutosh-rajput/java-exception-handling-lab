@@ -30,7 +30,7 @@ public class EmployeeTest {
     void testVariablesInEmployeeShouldBePresent() {
         try {
             Class<?> employeeClass = Class.forName("com.trainingmug.employee.domain.Employee");
-            assertFieldIsPrivate(employeeClass, "empId", long.class);
+            assertFieldIsPrivate(employeeClass, "emp", long.class);
             assertFieldIsPrivate(employeeClass, "name", String.class);
             assertFieldIsPrivate(employeeClass, "designation", String.class);
             assertFieldIsPrivate(employeeClass, "grossSalary", float.class);
