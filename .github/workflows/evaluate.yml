@@ -113,7 +113,7 @@ jobs:
                   message=$(echo "$testcase" | yq -r '.failure.+@message')
                   expected=$(grep -oP '(?<=expected: <).*?(?=> but was: <)' <<< "$message")
                   actual=$(grep -oP '(?<=but was: <).*?(?=>)' <<< "$message")
-              
+          
                   json_test_result=$(jq -n \
                   --arg name "$name" \
                   --arg expected "$expected" \
@@ -121,28 +121,31 @@ jobs:
                   '{name: $name, expectedOutput: $expected, actualOutput: $actual}')
                   failed_tests+=("$json_test_result")
                 done
-                
+          
                 # Parse passed test cases
                 readarray passed_testcases < <(yq e -o=j -I=0 '.testsuite.testcase[] | select(has("failure") | not)' "$file")
                 for testcase in "${passed_testcases[@]}"; do
                   name=$(echo "$testcase" | yq -r '.+@name')
                   passed_tests+=("$(jq -Rn --arg name "$name" '$name')")
                 done
-                
-                # Format arrays using jq
-                failed_tests=$(printf '%s\n' "${failed_tests[@]}" | jq -s .)
-                passed_tests=$(printf '%s\n' "${passed_tests[@]}" | jq -s .)
-                
-                # Payload
-                curl -X POST \
-                  -H "Content-Type: application/json" \
-                  -H "Authorization: $WEBHOOK_TOKEN" \
-                  -d "$(jq -n \
-                    --argjson passed $passed_tests_count \
-                    --argjson failed $failed_tests_count \
-                    --argjson total $total_tests_count \
-                    --argjson passedCases "$passed_tests" \
-                    --argjson failedCases "$failed_tests" \
-                    --arg sha "$GITHUB_SHA" \
-                    '{passedTests: $passed, failedTests: $failed, totalTests: $total, passedCases: $passedCases, failedCases: $failedCases, commitSHA: $sha}')" \
-                    "$CALLBACK_URL"
+              fi
+            done
+          fi
+          
+          # Format arrays using jq
+          failed_tests=$(printf '%s\n' "${failed_tests[@]}" | jq -s .)
+          passed_tests=$(printf '%s\n' "${passed_tests[@]}" | jq -s .)
+    
+          # Payload
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: $WEBHOOK_TOKEN" \
+            -d "$(jq -n \
+              --argjson passed $passed_tests_count \
+              --argjson failed $failed_tests_count \
+              --argjson total $total_tests_count \
+              --argjson passedCases "$passed_tests" \
+              --argjson failedCases "$failed_tests" \
+              --arg sha "$GITHUB_SHA" \
+              '{passedTests: $passed, failedTests: $failed, totalTests: $total, passedCases: $passedCases, failedCases: $failedCases, commitSHA: $sha}')" \
+            "$CALLBACK_URL"
