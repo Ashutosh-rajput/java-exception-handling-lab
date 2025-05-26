@@ -145,4 +145,4 @@ jobs:
                     --argjson failedCases "$failed_tests" \
                     --arg sha "$GITHUB_SHA" \
                     '{passedTests: $passed, failedTests: $failed, totalTests: $total, passedCases: $passedCases, failedCases: $failedCases, commitSHA: $sha}')" \
-                  "$CALLBACK_URL"
+                    "$CALLBACK_URL"
